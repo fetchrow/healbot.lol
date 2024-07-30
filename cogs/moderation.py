@@ -1,5 +1,6 @@
 import discord
 import sys
+import humanfriendly
 
 from tools.managers.context     import Context
 from discord.ext.commands       import command, group, BucketType, cooldown, has_permissions
@@ -64,5 +65,46 @@ class Moderation(commands.Cog):
         except:
             return await ctx.deny(f'Failed to ban {user.mention}.')
         
+    @commands.command(name='mute', description='mute a user in your server', brief='-mute <user> <time> <reason>')
+    @Perms.check_perms('manage_members')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def mute(self, ctx: commands.Context, member: discord.Member = None, time = None, *, reason: str = 'no reason'):
+        if member is None: return await ctx.create_pages(ctx.command)
+        await ctx.typing()
+
+        if ctx.author is ctx.guild.owner:
+            return await ctx.warn("You're unable to mute the **server owner**.")
+        if member is ctx.author:
+            return await ctx.warn("You're unable to mute **yourself**.")
+        if ctx.author.top_role.position <= member.top_role.position:
+            return await ctx.warn("You're unable to mute a user with a **higher role** than **yourself**.")
+        
+        if not time:
+            time = '29d'
+        
+        if not re.match(r'^\d+[smhdw]$', time):
+            return await ctx.warn("Please use a valid format (for example: `5s, 10m, 1h, 3d`)")
+        
+        amount = humanfriendly.parse_timespan(time)
+        await member.timeout(discord.utils.utcnow() + datetime.timedelta(seconds=amount), reason=reason)
+        return await ctx.approve(f'**muted** {member.mention}')
+    
+    @commands.command(name='unmute', description='ummute a user in your server', brief='-ummute <user> <reason>')
+    @Perms.check_perms('manage_members')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def unmute(self, ctx: commands.Context, member: discord.Member = None, *, reason: str = 'no reason'):
+        if member is None: return await ctx.create_pages(ctx.command)
+        await ctx.typing()
+
+        if ctx.author is ctx.guild.owner:
+            return await ctx.warn("You're unable to unmute the **server owner**.")
+        if member is ctx.author:
+            return await ctx.warn("You're unable to unmute **yourself**.")
+        if ctx.author.top_role.position <= member.top_role.position:
+            return await ctx.warn("You're unable to unmute a user with a **higher role** than **yourself**.")
+
+        await member.timeout(None, reason=reason)
+        return await ctx.approve(f'**unmuted** {member.mention}')
+
 async def setup(bot: Heal):
     await bot.add_cog(Moderation(bot))

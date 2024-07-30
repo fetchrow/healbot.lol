@@ -12,6 +12,7 @@ import os
 import re
 
 from tools.managers.context       import Context
+from tools.managers.lastfm        import Handler
 from discord.ext                  import commands
 from discord                      import Message, Embed
 
@@ -33,6 +34,7 @@ class Heal(commands.Bot):
             case_insensitive = True,
             owner_ids = [1185934752478396528, 187747524646404105]
         )
+        self.lastfm_handler  = Handler('dec08f425cefe5f14dd9fddf61529b02')
 
     async def load_modules(self, directory: str) -> None:
         for module in glob.glob(f'{directory}/**/*.py', recursive=True):
@@ -73,4 +75,4 @@ class Heal(commands.Bot):
         if isinstance(ex, commands.errors.NotOwner):
             return await ctx.deny(f'You are not an owner of {self.user.mention}.')
         if isinstance(ex, commands.errors.CommandOnCooldown):
-            return await ctx.warn(f'This command is currently on cooldown, try again in ')
+            return await ctx.warn(f'This command is currently on cooldown, try again in {int(ex.retry_after)}s')
