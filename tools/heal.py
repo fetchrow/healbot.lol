@@ -71,7 +71,7 @@ class Heal(commands.Bot):
     async def get_context(self, message: Message, *, cls=Context):
         return await super().get_context(message, cls=cls)
     
-    async def on_command_error(self, ctx: Context, ex: commands.CommandError) -> None:
+    async def on_command_error(self, ctx: Context, ex: commands.CommandError):
         if isinstance(ex, commands.errors.NotOwner):
             return await ctx.deny(f'You are not an owner of {self.user.mention}.')
         if isinstance(ex, commands.errors.CommandOnCooldown):
