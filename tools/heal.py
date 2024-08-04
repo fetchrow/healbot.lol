@@ -34,7 +34,6 @@ class Heal(commands.Bot):
             case_insensitive = True,
             owner_ids = [1185934752478396528, 187747524646404105]
         )
-        self.lastfm_handler  = Handler('dec08f425cefe5f14dd9fddf61529b02')
 
     async def load_modules(self, directory: str) -> None:
         for module in glob.glob(f'{directory}/**/*.py', recursive=True):
