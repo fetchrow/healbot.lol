@@ -13,11 +13,15 @@ import sys
 import os
 import re
 import datetime
+import time
 
-from tools.managers.context       import Context
-from tools.managers.lastfm        import Handler
-from discord.ext                  import commands
-from discord                      import Message, Embed
+from asyncpg import Pool
+from typing import Dict
+
+from tools.managers.context import Context
+from tools.managers.lastfm import Handler
+from discord.ext import commands
+from discord import Message, Embed
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -27,30 +31,34 @@ intents.presences = False
 
 class Heal(commands.Bot):
     def __init__(self):
+        self.errors = Dict[str, commands.CommandError]
+        self._uptime = time.time()
+
         super().__init__(
-            command_prefix      = ';',
-            help_command        = None,
-            intents             = intents,
-            allowed_mentions    = discord.AllowedMentions(
-                everyone     = False,
-                users        = True,
-                roles        = False,
-                replied_user = False
+            command_prefix=';',
+            help_command=None,
+            intents=intents,
+            allowed_mentions=discord.AllowedMentions(
+                everyone=False,
+                users=True,
+                roles=False,
+                replied_user=False
             ),
-            case_insensitive = True,
-            owner_ids = [1185934752478396528, 187747524646404105]
+            case_insensitive=True,
+            owner_ids=[1185934752478396528, 187747524646404105]
         )
 
     async def load_modules(self, directory: str) -> None:
         for module in glob.glob(f'{directory}/**/*.py', recursive=True):
-            if module.endswith('__init__.py'): continue
+            if module.endswith('__init__.py'):
+                continue
             try:
                 await self.load_extension(module.replace('/', '.').replace('.py', ''))
                 log.info(f'Loaded module: {module}')
             except commands.ExtensionFailed:
                 log.warning(f'Extension failed to load: {module}')
-            except:
-                pass
+            except Exception as e:
+                log.error(f'Error loading module {module}: {e}')
     
     async def load_patches(self) -> None:
         for module in glob.glob('tools/patches/**/*.py', recursive=True):
@@ -65,6 +73,29 @@ class Heal(commands.Bot):
             except ModuleNotFoundError as e:
                 print(f"Error importing {module_name}: {e}")
 
+    async def _load_database(self) -> Pool:
+        try:
+            pool = await asyncpg.create_pool(
+                **{var: os.environ[f'DATABASE_{var.upper()}' if var != 'database' else 'DATABASE'] for var in ['database', 'user', 'password', 'host']},
+                max_size=30,
+                min_size=10,
+            )
+            log.info('Database connection established')
+
+            with open('tools/schema/schema.sql', 'r') as file:
+                schema = file.read()
+                if schema.strip():  # Check if schema is not empty
+                    await pool.execute(schema)
+                    log.info('Database schema loaded')
+                else:
+                    log.warning('Database schema file is empty')
+                file.close()
+
+            return pool
+        except Exception as e:
+            log.error(f'Error loading database: {e}')
+            raise e
+
     async def on_ready(self) -> None:
         log.info(f'Logged in as {self.user.name}#{self.user.discriminator} ({self.user.id})')
         log.info(f'Connected to {len(self.guilds)} guilds')
@@ -72,14 +103,15 @@ class Heal(commands.Bot):
         
         await self.cogs['Music'].start_nodes()
         log.info('Lavalink Nodes Loaded.')
-        self.start_time = datetime.datetime.utcnow()
 
     async def setup_hook(self) -> None:
-        os.system('cls' if os.name == 'nt' else 'clear')
+        self.pool = await self._load_database()
         self.session = aiohttp.ClientSession()
-
         await self.load_modules('cogs')
+        await self.load_modules('events')
         await self.load_extension('jishaku')
+        
+        return await super().setup_hook()
 
     async def get_context(self, message: Message, *, cls=Context):
         return await super().get_context(message, cls=cls)
@@ -141,7 +173,6 @@ class Heal(commands.Bot):
         if isinstance(exception, commands.errors.NotOwner):
             return await ctx.deny(f'You are not an owner of {self.user.mention}.')
 
-
         code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(13))
         self.errors[code] = exception
-        return await ctx.warn(message=f"Error occurred whilst performing command **{ctx.command.qualified_name}**. Use the given error code to report it to the developers in the [support server](https://discord.gg/tCZDT7YdUF)", content=f"`{code}`")  
+        return await ctx.warn(message=f"Error occurred whilst performing command **{ctx.command.qualified_name}**. Use the given error code to report it to the developers in the [support server](https://discord.gg/tCZDT7YdUF)", content=f"`{code}`")
