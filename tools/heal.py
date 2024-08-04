@@ -10,6 +10,7 @@ import json
 import sys
 import os
 import re
+import datetime
 
 from tools.managers.context       import Context
 from tools.managers.lastfm        import Handler
@@ -69,6 +70,7 @@ class Heal(commands.Bot):
         
         await self.cogs['Music'].start_nodes()
         log.info('Lavalink Nodes Loaded.')
+        self.start_time = datetime.datetime.utcnow()
 
     async def setup_hook(self) -> None:
         os.system('cls' if os.name == 'nt' else 'clear')

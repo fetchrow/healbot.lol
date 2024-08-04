@@ -170,7 +170,8 @@ class Moderation(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.has_permissions(manage_threads=True)
     async def thread_lock(self, ctx: Context, thread: discord.Thread = None):
-        if thread is None: return await ctx.create_pages(ctx.command)
+        if thread is None: 
+            return await ctx.create_pages(ctx.command)
         await thread.lock()
         return await ctx.approve(f'**locked** {thread.mention}')
     
