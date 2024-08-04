@@ -16,6 +16,9 @@ from tools.managers.lastfm        import Handler
 from discord.ext                  import commands
 from discord                      import Message, Embed
 
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 intents = discord.Intents.all()
 intents.presences = False
 
@@ -39,13 +42,12 @@ class Heal(commands.Bot):
         for module in glob.glob(f'{directory}/**/*.py', recursive=True):
             if module.endswith('__init__.py'): continue
             try:
-                print(module.replace('\\', '.').replace('.py', ''))
-                await self.load_extension(module.replace('\\', '.').replace('.py', ''))
-                print(f'Loaded module: {module}')
+                await self.load_extension(module.replace('/', '.').replace('.py', ''))
+                log.info(f'Loaded module: {module}')
             except commands.ExtensionFailed:
-                print(f'Extension failed to load: {module}')
-            except Exception as e:
-                print(e)
+                log.warning(f'Extension failed to load: {module}')
+            except:
+                pass
     
     async def load_patches(self) -> None:
         for module in glob.glob('tools/patches/**/*.py', recursive=True):
@@ -59,6 +61,14 @@ class Heal(commands.Bot):
                 print(f'Patched: {module}')
             except ModuleNotFoundError as e:
                 print(f"Error importing {module_name}: {e}")
+
+    async def on_ready(self) -> None:
+        log.info(f'Logged in as {self.user.name}#{self.user.discriminator} ({self.user.id})')
+        log.info(f'Connected to {len(self.guilds)} guilds')
+        log.info(f'Connected to {len(self.users)} users')
+        
+        await self.cogs['Music'].start_nodes()
+        log.info('Lavalink Nodes Loaded.')
 
     async def setup_hook(self) -> None:
         os.system('cls' if os.name == 'nt' else 'clear')

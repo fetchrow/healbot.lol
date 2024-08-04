@@ -54,3 +54,12 @@ class Context(Context):
             view  = Paginator(self, embeds),
             **kwargs
         )
+
+    async def neutral(self, message: str, **kwargs) -> Message:
+        return await self.send(
+            embed=Embed(
+                color = Colors.BASE_COLOR,
+                description = f'{message}'
+            ),
+            **kwargs
+        )

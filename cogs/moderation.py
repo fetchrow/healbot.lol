@@ -1,6 +1,9 @@
 import discord
 import sys
 import humanfriendly
+import re 
+import datetime
+import timedelta
 
 from tools.managers.context     import Context
 from discord.ext.commands       import command, group, BucketType, has_permissions
@@ -68,7 +71,7 @@ class Moderation(commands.Cog):
     @commands.command(name='mute', description='mute a user in your server', brief='-mute <user> <time> <reason>')
     @commands.has_permissions(moderate_members=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def mute(self, ctx: commands.Context, member: discord.Member = None, time = None, *, reason: str = 'no reason'):
+    async def mute(self, ctx: commands.Context, member: discord.Member = None, time: str = None, *, reason: str = 'no reason'):
         if member is None: return await ctx.create_pages(ctx.command)
         await ctx.typing()
 
