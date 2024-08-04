@@ -22,7 +22,7 @@ class Information(commands.Cog):
         aliases = ["bi", "bot"],
         usage = "botinfo"
     )
-    @cooldown(1, 2, commands.BucketType.user)
+    @cooldown(1, 5, commands.BucketType.user)
     async def botinfo(self, ctx: Context):
         commands = [command for command in set(self.bot.walk_commands()) if command.cog_name != 'Jishaku']
 
@@ -42,7 +42,7 @@ class Information(commands.Cog):
         aliases = ["heartbeat", "latency", "websocket"],
         usage = "ping"
     )
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @cooldown(1, 5, commands.BucketType.user)
     async def ping(self, ctx: Context):
         list = ["china", "north korea", "your ip", "localhost", "heal", "discord", "your mom"]
 
@@ -53,6 +53,16 @@ class Information(commands.Cog):
         return await message.edit(
             content=f"it took `{int(self.bot.latency * 1000)}ms` to ping **{choice(list)}** (edit: `{finished:.2f}ms`)"
         )
+
+    @command(
+        name = "invite",
+        aliases = ["inv"],
+        usage = "invite"
+    )
+    @cooldown(1, 5, commands.BucketType.user)
+    async def invite(self, ctx: Context):
+        await ctx.send(f"{discord.utils.oauth_url(client_id=self.bot.user.id, permissions=discord.Permissions(8))}")
+
 
 async def setup(bot: Heal):
     await bot.add_cog(Information(bot))
