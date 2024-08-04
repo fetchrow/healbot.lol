@@ -137,8 +137,11 @@ class Heal(commands.Bot):
         elif isinstance(exception, commands.UserInputError): 
             return await ctx.warn(f"**Invalid Input Given**: \n`{exception}`")
         elif isinstance(exception, commands.CommandOnCooldown):
-            return await ctx.neutral(f"Please wait **{exception.retry_after:.2f} seconds** before using any command again.", emoji=self.config.EMOJI.DEFAULT.COOLDOWN, delete_after=2)
-        
+            return await ctx.neutral(f"Please wait **{exception.retry_after:.2f} seconds** before using any command again.")
+        if isinstance(exception, commands.errors.NotOwner):
+            return await ctx.deny(f'You are not an owner of {self.user.mention}.')
+
+
         code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(13))
         self.errors[code] = exception
         return await ctx.warn(message=f"Error occurred whilst performing command **{ctx.command.qualified_name}**. Use the given error code to report it to the developers in the [support server](https://discord.gg/tCZDT7YdUF)", content=f"`{code}`")  
