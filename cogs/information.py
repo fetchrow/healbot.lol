@@ -1,6 +1,9 @@
 import discord
 import psutil
 import sys
+import time
+import random
+from random import choice
 
 from tools.managers.context     import Context
 from discord.ext.commands       import command, group, BucketType, cooldown, has_permissions
@@ -33,6 +36,23 @@ class Information(commands.Cog):
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
 
         await ctx.send(embed=embed)
+
+    @command(
+        name = "ping",
+        aliases = ["heartbeat", "latency", "websocket"],
+        usage = "ping"
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def ping(self, ctx: Context):
+        list = ["china", "north korea", "your ip", "localhost", "heal", "discord", "your mom"]
+
+        start = time.time()
+        message = await ctx.send(content="..")
+        finished = time.time() - start
+
+        return await message.edit(
+            content=f"it took `{int(self.bot.latency * 1000)}ms` to ping **{choice(list)}** (edit: `{finished:.2f}ms`)"
+        )
 
 async def setup(bot: Heal):
     await bot.add_cog(Information(bot))
