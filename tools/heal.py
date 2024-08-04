@@ -115,6 +115,36 @@ class Heal(commands.Bot):
 
     async def get_context(self, message: Message, *, cls=Context):
         return await super().get_context(message, cls=cls)
+
+    def humanize_number(self, number: int) -> str:
+        suffixes = ['', 'k', 'm', 'b', 't']
+        magnitude = min(len(suffixes) - 1, (len(str(abs(number))) - 1) // 3)
+        formatted_number = '{:.1f}'.format(number / 10 ** (3 * magnitude)).rstrip('0').rstrip('.')
+        return '{}{}'.format(formatted_number, suffixes[magnitude])
+
+    def humanize_time(self, start_time: float) -> str:
+        uptime_seconds = abs(time.time() - start_time)
+        intervals = (
+            ('year', 31556952),
+            ('month', 2629746),
+            ('day', 86400),
+            ('hour', 3600),
+            ('minute', 60),
+            ('second', 1),
+        )
+
+        result = []
+        for name, count in intervals:
+            value = uptime_seconds // count
+            if value:
+                uptime_seconds -= value * count
+                result.append(f"{int(value)} {name}{'s' if value > 1 else ''}")
+
+        return ', '.join(result)
+
+    @property
+    def uptime(self) -> str:
+        return self.humanize_time(self._uptime)
     
     async def on_command_error(self, ctx: Context, exception: commands.CommandError) -> None:
         if type(exception) in [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]: return
