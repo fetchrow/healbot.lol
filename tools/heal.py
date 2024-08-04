@@ -18,6 +18,7 @@ import time
 from asyncpg import Pool
 from typing import Dict
 
+from tools.managers.help import HealHelp
 from tools.managers.context import Context
 from tools.managers.lastfm import Handler
 from discord.ext import commands
@@ -36,7 +37,7 @@ class Heal(commands.Bot):
 
         super().__init__(
             command_prefix=';',
-            help_command=None,
+            help_command=HealHelp(),
             intents=intents,
             allowed_mentions=discord.AllowedMentions(
                 everyone=False,
