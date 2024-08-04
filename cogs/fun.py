@@ -10,7 +10,7 @@ from discord.ext.commands       import command, group, BucketType, cooldown, has
 from tools.managers.context import Context, Colors
 from tools.heal import Heal
 
-class fun(commands.Cog):
+class Fun(commands.Cog):
     """
     Commands for when you're bored
     """
@@ -99,4 +99,4 @@ class fun(commands.Cog):
         self.MatchStart[ctx.guild.id] = False   
 
 async def setup(bot: Heal):
-    return await bot.add_cog(fun(bot))
+    return await bot.add_cog(Fun(bot))

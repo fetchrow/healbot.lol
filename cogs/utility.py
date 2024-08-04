@@ -9,7 +9,7 @@ from discord.utils              import format_dt
 from discord.ext                import commands
 from tools.heal                 import Heal
 
-class utility(commands.Cog):
+class Utility(commands.Cog):
     def __init__(self, bot: Heal) -> None:
         self.bot = bot
 
