@@ -154,5 +154,11 @@ class utility(commands.Cog):
 
         await ctx.paginate(embeds)
 
+    @commands.Cog.listener("on_message_edit")
+    async def process_edits(self, before: discord.Message, after: discord.Message) -> discord.Message:
+
+            if before.content != after.content:
+                await self.bot.process_commands(after)
+
 async def setup(bot: Heal):
     await bot.add_cog(utility(bot))
