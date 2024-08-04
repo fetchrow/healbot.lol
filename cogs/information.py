@@ -111,7 +111,7 @@ class Information(commands.Cog):
     )
     @cooldown(1, 5, commands.BucketType.user)
     async def uptime(self, ctx: Context):
-        await ctx.neutral(f":alarm_clock: I have been **online** for {self.bot._uptime}")
+        await ctx.neutral(f":alarm_clock: I have been **online** for `{self.bot.uptime}`")
         
 
 async def setup(bot: Heal):
