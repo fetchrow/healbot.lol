@@ -33,7 +33,7 @@ class HealHelp(HelpCommand):
         
         view.interaction_check = interaction_check
         
-        view.add_item(CategorySelector({key.__cog_name__: key for key, _ in mapping.items() if key is not None and key.__cog_name__.capitalize() not in ['Jishaku', 'Developer']}, embed))
+        view.add_item(CategorySelector({key.__cog_name__: key for key, _ in mapping.items() if key is not None and key.__cog_name__.capitalize() not in ['Jishaku', 'Owner']}, embed))
         
         return await self.context.send(
             embed = embed,

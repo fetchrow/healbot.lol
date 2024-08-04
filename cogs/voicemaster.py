@@ -16,7 +16,7 @@ from discord.ext.commands import (
 from tools.ui import Interface
 from tools.configuration import Emojis
 from tools.heal import Heal
-from tools.managers import Context
+from tools.managers.context import Context
 
 class VoiceMaster(Cog):
     def __init__(self, bot: Heal):
@@ -71,7 +71,7 @@ class VoiceMaster(Cog):
                     f'{Emojis.VOICEMASTER_PERSON} . [`Claim`](https://discord.gg/baUaYS2rJ6) the voice channel\n'
                     f'{Emojis.VOICEMASTER_ADD} . [`Permit`](https://discord.gg/baUaYS2rJ6) a member\n'
                     f'{Emojis.VOICEMASTER_MINUS} . [`Reject`](https://discord.gg/baUaYS2rJ6) a member\n'
-                    f'{Emojis.VOICEMASTER_RENAME} . [`Rename`](https://discord.gg/baUaYS2rJ6 the voice channel\n'
+                    f'{Emojis.VOICEMASTER_RENAME} . [`Rename`](https://discord.gg/baUaYS2rJ6) the voice channel\n'
                     f'{Emojis.VOICEMASTER_OWNERSHIP} . [`Transfer`](https://discord.gg/baUaYS2rJ6) the channel ownership\n'
                     f'{Emojis.VOICEMASTER_DELETE} . [`Delete`](https://discord.gg/baUaYS2rJ6) the voice channel\n'
                 )
@@ -91,6 +91,41 @@ class VoiceMaster(Cog):
         )
         
         return await ctx.approve('Finished setting up the **VoiceMaster** channels. A category and two channels have been created, you can move the channels or rename them if you want.')
+
+    @voicemaster.command(
+        name='remove',
+        description='Remove all temporary voice channels managed by VoiceMaster'
+    )
+    @commands.has_permissions(manage_guild=True)
+    async def voicemaster_remove(self, ctx: Context):
+        channels = await self.bot.pool.fetch(
+            """
+            SELECT channel_id FROM voicemaster.channels WHERE guild_id = $1
+            """,
+            ctx.guild.id
+        )
+        
+        if not channels:
+            return await ctx.deny(f"No **VoiceMaster** channels found to remove.")
+        
+        for record in channels:
+            channel_id = record['channel_id']
+            channel = ctx.guild.get_channel(channel_id)
+            if channel:
+                await self.bot.pool.execute(
+                    """
+                    DELETE FROM voicemaster.channels WHERE guild_id = $1 AND channel_id = $2
+                    """,
+                    ctx.guild.id,
+                    channel_id
+                )
+                try:
+                    await channel.delete()
+                    await ctx.send(f"Successfully deleted the **VoiceMaster** channel: {channel.name}")
+                except discord.Forbidden:
+                    await ctx.send(f"I do not have permission to delete the channel: {channel.name}")
+                except discord.HTTPException as e:
+                    await ctx.send(f"Failed to delete the channel: {channel.name} ({e})")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):

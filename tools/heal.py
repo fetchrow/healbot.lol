@@ -112,6 +112,9 @@ class Heal(commands.Bot):
         await self.load_modules('events')
         await self.load_extension('jishaku')
         
+        from tools.ui import Interface
+        self.add_view(Interface(self))
+
         return await super().setup_hook()
 
     async def get_context(self, message: Message, *, cls=Context):

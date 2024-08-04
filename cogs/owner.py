@@ -56,7 +56,7 @@ class Owner(Cog):
     )
     @is_owner()
     async def system(self, ctx: Context):
-        return None
+        return await ctx.send_help(ctx.command.qualified_name)
     
     @system.command(
         name = "restart",
