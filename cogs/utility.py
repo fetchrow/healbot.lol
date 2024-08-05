@@ -195,7 +195,7 @@ class Utility(commands.Cog):
         api_url = f"https://api.kastg.xyz/api/ai/llamaV3?prompt={prompt}"
 
         async with aiohttp.ClientSession() as session:
-            async with session.get("https://api.kastg.xyz/api/ai/llamaV3?prompt=Hello!%20How%20are%20you? ") as r:
+            async with session.get(f"https://api.kastg.xyz/api/ai/llamaV3?prompt={prompt} ") as r:
                 response = await r.json()
                 await ctx.send(response["result"][0]["response"])
                 
