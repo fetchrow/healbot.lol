@@ -23,3 +23,10 @@ CREATE TABLE IF NOT EXISTS forcenick (
     user_id BIGINT,
     name TEXT
 );
+
+CREATE TABLE IF NOT EXISTS welcome (
+    guild_id BIGINT,
+    channel_id BIGINT,
+    message TEXT,
+    PRIMARY KEY (guild_id, channel_id)
+);

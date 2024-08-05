@@ -8,6 +8,7 @@ from tools.paginator            import Paginator
 from discord.utils              import format_dt
 from discord.ext                import commands
 from tools.heal                 import Heal
+from tools.EmbedBuilder         import EmbedBuilder, EmbedScript
 
 class Utility(commands.Cog):
     def __init__(self, bot: Heal) -> None:
@@ -160,6 +161,15 @@ class Utility(commands.Cog):
 
             if before.content != after.content:
                 await self.bot.process_commands(after)
+
+    @commands.command(
+        name = "createembed",
+        aliases = ["ce"],
+        description = "Create an embed."
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def createembed(self, ctx: Context,  *, code: EmbedScript):
+        await ctx.send(**code)
 
 async def setup(bot: Heal):
     await bot.add_cog(Utility(bot))

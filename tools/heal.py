@@ -97,6 +97,11 @@ class Heal(commands.Bot):
             log.error(f'Error loading database: {e}')
             raise e
 
+    async def get_prefix(self, message: Message) -> str:
+        if message.guild is None:
+            return
+        return await self.pool.fetchval("SELECT prefix FROM guilds WHERE guild_id = $1", message.guild.id) or (';')
+
     async def on_ready(self) -> None:
         log.info(f'Logged in as {self.user.name}#{self.user.discriminator} ({self.user.id})')
         log.info(f'Connected to {len(self.guilds)} guilds')
