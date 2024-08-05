@@ -20,7 +20,7 @@ class Information(commands.Cog):
     @command(
         name = "botinfo",
         aliases = ["bi", "bot"],
-        usage = "botinfo"
+        description = "Get information about the bot."
     )
     @cooldown(1, 5, commands.BucketType.user)
     async def botinfo(self, ctx: Context):
@@ -47,7 +47,7 @@ class Information(commands.Cog):
         list = ["china", "north korea", "your ip", "localhost", "heal", "discord", "your mom"]
 
         start = time.time()
-        message = await ctx.send(content="..")
+        message = await ctx.send(content="pong!")
         finished = time.time() - start
 
         return await message.edit(

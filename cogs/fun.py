@@ -33,7 +33,7 @@ class Fun(commands.Cog):
 
     @command(
         name = "blacktea",
-        usage = "blacktea"
+        description = "Play a game of blacktea."
     )
     @cooldown(1, 5, commands.BucketType.user)
     async def blacktea(self, ctx: Context): 

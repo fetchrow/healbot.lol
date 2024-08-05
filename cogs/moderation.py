@@ -160,44 +160,42 @@ class Moderation(commands.Cog):
 
             await ctx.approve(f"Unmuted **{user}**")
     
-    @commands.group(name='thread', description='manage threads using a single command', invoke_without_command=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.has_permissions(manage_threads=True)
-    async def thread(self, ctx: commands.Context):
-        await ctx.send("help")
+    @commands.command(
+    name="forcenickname",
+    aliases=["fn"],
+    description="force a nickname upon a user."
+    )
+    @commands.has_permissions(moderate_members=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def forcenickname(self, ctx: Context, user: discord.Member, *, name: str = None):
+        if name is None:
+            check = await self.bot.pool.fetchrow(
+                "SELECT name FROM forcenick WHERE guild_id = $1 AND user_id = $2", 
+                ctx.guild.id, user.id
+            )
+            if check and check["name"]:
+                await self.bot.pool.execute(
+                    "DELETE FROM forcenick WHERE guild_id = $1 AND user_id = $2", 
+                    ctx.guild.id, user.id
+                )
+                await user.edit(nick=None)
+                return await ctx.approve(f"Removed the **forced nickname** from {user.mention}!")
+        else:
+            await self.bot.pool.execute(
+                "INSERT INTO forcenick (guild_id, user_id, name) VALUES ($1, $2, $3)", 
+                ctx.guild.id, user.id, name
+            )
+            await user.edit(nick=name)
+            return await ctx.approve(f"Forced **{user.name}'s** nickname to be **`{name}`**!")
 
-    @thread.command(name="lock", description="lock a thread")
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.has_permissions(manage_threads=True)
-    async def thread_lock(self, ctx: Context, thread: discord.Thread = None):
-        if thread is None: 
-            return await ctx.create_pages(ctx.command)
-        await thread.lock()
-        return await ctx.approve(f'**locked** {thread.mention}')
-    
-    @thread.command(name="delete", description="delete a thread")
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.has_permissions(manage_threads=True)
-    async def thread_delete(self, ctx: Context, thread: discord.Thread = None):
-        if thread is None: return await ctx.create_pages(ctx.command)
-        await thread.delete()
-    
-    @thread.command(name="unlock", description="unlock a thread")
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.has_permissions(manage_threads=True)
-    async def thread_unlock(self, ctx: Context, thread: discord.Thread = None):
-        if thread is None: return await ctx.create_pages(ctx.command)
-        await thread.unlock()
-        return await ctx.approve(f'**unlocked** {thread.mention}')
-    
-    @command(name="cooldown", description="set a channel cooldown")
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.has_permissions(manage_channels=True)
-    async def cooldown(self, ctx :Context, seconds: int = 0, channel: discord.TextChannel = None):
-        if channel is None: channel = ctx.channel
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+      if str(before.nick) != str(after.nick): 
+        check = await self.bot.pool.fetchrow("SELECT name FROM forcenick WHERE user_id = $1 AND guild_id = $2", before.id, before.guild.id)   
+        if check: 
+            return await before.edit(nick=check['name'])
 
-        await channel.edit(slowmode_delay=seconds)
-        return await ctx.approve(f'**set cooldown** to {seconds} seconds in {channel.mention}')
+
         
 
 async def setup(bot: Heal):

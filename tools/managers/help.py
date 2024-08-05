@@ -20,7 +20,7 @@ class HealHelp(HelpCommand):
     async def send_bot_help(self, mapping: Mapping[Cog, List[Command[Any, Callable[..., Any], Any]]]) -> None:
         embed = discord.Embed(
             color = Colors.BASE_COLOR,
-            description=f"> Use the select menu below to **navigate** throughout the help menu.\n> If your **stuck**, feel free to dm **@lavalink** for help."
+            description=f"> Use the select menu below to **navigate** throughout the help menu.\n> If your **stuck**, feel free to dm **@psutil** for help."
         ).set_author(name = self.context.author.display_name, icon_url = self.context.author.display_avatar.url).set_thumbnail(url = self.context.bot.user.display_avatar.url)
         
         view = discord.ui.View(timeout = 3000)
