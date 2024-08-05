@@ -28,7 +28,7 @@ class Utility(commands.Cog):
         embeds = []
 
         if len(banned) == 0:
-            return await ctx.send('there are no **bans** in this server.')
+            return await ctx.warn('there are no **bans** in this server.')
 
         entries = [
             f"` {i} `  **{m.user.name}**  ({m.user.id})  |  {m.reason if m.reason else 'no reason provided'}"
@@ -134,7 +134,7 @@ class Utility(commands.Cog):
         embeds = []
 
         if len(bots) == 0:
-            return await ctx.send('There are no **bots** in this server.')
+            return await ctx.warn('There are no **bots** in this server.')
 
         entries = [
             f"` {i} `  **{b.name}**  (`{b.id}`)"
