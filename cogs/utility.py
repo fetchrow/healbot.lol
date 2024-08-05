@@ -1,5 +1,6 @@
 import discord
 import sys
+import aiohttp
 
 from tools.managers.context     import Context
 from discord.ext.commands       import command, group, BucketType, cooldown, has_permissions
@@ -9,6 +10,7 @@ from discord.utils              import format_dt
 from discord.ext                import commands
 from tools.heal                 import Heal
 from tools.EmbedBuilder         import EmbedBuilder, EmbedScript
+from discord.ui import View, Button
 
 class Utility(commands.Cog):
     def __init__(self, bot: Heal) -> None:
@@ -170,6 +172,34 @@ class Utility(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def createembed(self, ctx: Context,  *, code: EmbedScript):
         await ctx.send(**code)
+
+    @commands.command(name = "avatar", aliases = ["av"])
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def avatar(self, ctx: Context, user: discord.Member = None):
+        if user is None:
+            user = ctx.author
+        embed = discord.Embed(title = f"{user}'s avatar.", color = Colors.BASE_COLOR)
+        embed.set_image(url = user.avatar.url)
+        view = View()
+        view.add_item(Button(label="avatar", url=user.avatar.url))
+        await ctx.send(embed=embed, view=view)
+
+    @command(
+        name = "chatgpt",
+        aliases = ["openai", "ai", "ask"],
+        description = "Ask chatgpt a question."
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def chatgpt(self, ctx: Context, *, prompt: str):
+        await ctx.typing()
+        api_url = f"https://api.kastg.xyz/api/ai/llamaV3?prompt={prompt}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://api.kastg.xyz/api/ai/llamaV3?prompt=Hello!%20How%20are%20you? ") as r:
+                response = await r.json()
+                await ctx.send(response["result"][0]["response"])
+                
+
 
 async def setup(bot: Heal):
     await bot.add_cog(Utility(bot))

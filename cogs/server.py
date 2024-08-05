@@ -9,6 +9,7 @@ from discord.ext.commands import (
 )
 from tools.heal import Heal
 from tools.managers.context import Context
+from tools.configuration import Colors, Emojis
 from tools.EmbedBuilder import EmbedBuilder, EmbedScript
 
 class Server(Cog):
@@ -175,7 +176,7 @@ class Server(Cog):
         data = await self.bot.pool.fetch("SELECT * FROM welcome WHERE guild_id = $1", ctx.guild.id)
 
         if not data:
-            return await ctx.send("There are no **welcome settings** saved for this server.")
+            return await ctx.deny("There are no **welcome settings** saved for this server.")
         
         embed = discord.Embed(title="Welcome Channels", color=Colors.BASE_COLOR)
         for entry in data:

@@ -130,6 +130,44 @@ class Owner(Cog):
         await self.bot.tree.sync()
         await ctx.message.clear_reactions()
         return await ctx.message.add_reaction("✅")
+    
+    @commands.command(
+        name = "unblacklist",
+        aliases =["unbl"],
+        description = "Unblacklist a user."
+    )
+    @commands.is_owner()
+    async def unblacklist(self, ctx: Context, *, user: Union[discord.User, discord.Member]):
+
+        await self.bot.pool.execute(
+            """
+            DELETE FROM blacklist 
+            WHERE user_id = $1
+            """,
+            user.id
+        )
+
+        return await ctx.approve(f"**Unblacklisted** {user.name}")
+
+    @commands.command(
+        name = "blacklist",
+        aliases =["bl"],
+        description = "Blacklist a user."
+    )
+    @commands.is_owner()
+    async def blacklist(self, ctx: Context, *, user: Union[discord.User, discord.Member]):
+
+        await self.bot.pool.execute(
+            """
+            INSERT INTO blacklist (user_id)
+            VALUES ($1)
+            ON CONFLICT (user_id)
+            DO NOTHING
+            """,
+            user.id
+        )
+
+        return await ctx.approve(f"**Blacklisted** {user.name}")
 
     
 

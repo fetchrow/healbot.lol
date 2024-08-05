@@ -17,10 +17,12 @@ import time
 
 from asyncpg import Pool
 from typing import Dict
+from collections import defaultdict
 
 from tools.managers.help import HealHelp
 from tools.managers.context import Context
 from tools.managers.lastfm import Handler
+from tools.configuration import Colors, Emojis
 from discord.ext import commands
 from discord import Message, Embed
 
@@ -48,6 +50,9 @@ class Heal(commands.Bot):
             case_insensitive=True,
             owner_ids=[1185934752478396528, 187747524646404105]
         )
+
+        self.message_cache = defaultdict(list)
+        self.cache_expiry_seconds = 30
 
     async def load_modules(self, directory: str) -> None:
         for module in glob.glob(f'{directory}/**/*.py', recursive=True):
@@ -215,3 +220,29 @@ class Heal(commands.Bot):
         code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(13))
         self.errors[code] = exception
         return await ctx.warn(message=f"Error occurred whilst performing command **{ctx.command.qualified_name}**. Use the given error code to report it to the developers in the [support server](https://discord.gg/tCZDT7YdUF)", content=f"`{code}`")
+
+
+    async def on_message(self, message: discord.Message) -> None:
+        if message.author.bot:
+            return
+        check = await self.pool.fetchrow("SELECT * FROM blacklist WHERE user_id = $1", message.author.id)
+        if check:
+            return
+
+        prefix = await self.get_prefix(message)
+        if not message.content.startswith(tuple(prefix)):
+            return
+        
+        now = time.time()
+        author_id = message.author.id
+
+        self.message_cache[author_id] = [timestamp for timestamp in self.message_cache[author_id] if now - timestamp < self.cache_expiry_seconds]
+
+        if len(self.message_cache[author_id]) >= 10:
+            await self.pool.execute("INSERT INTO blacklist VALUES ($1)", author_id)
+            await message.channel.send(
+                embed = discord.Embed(color=Colors.BASE_COLOR,description=f"> {message.author.mention}: You are now **blacklisted**, join the support [server](https://discord.gg/baUaYS2rJ6) for support.")
+            )
+        else:
+            self.message_cache[author_id].append(now)
+            await self.process_commands(message)

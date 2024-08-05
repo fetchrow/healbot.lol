@@ -30,3 +30,13 @@ CREATE TABLE IF NOT EXISTS welcome (
     message TEXT,
     PRIMARY KEY (guild_id, channel_id)
 );
+
+CREATE TABLE IF NOT EXISTS afk (
+    user_id BIGINT PRIMARY KEY,
+    status TEXT,
+    time BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS blacklist (
+    user_id BIGINT PRIMARY KEY
+);
